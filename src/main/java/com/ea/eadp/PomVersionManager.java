@@ -18,14 +18,15 @@ import java.util.function.Consumer;
  */
 public class PomVersionManager {
     private static Logger logger = Logger.getLogger(PomVersionManager.class);
-    private static final String NameSpace = "mvn";
+    private static final String NameSpace = "pom";
     private static final String _nameSpacePrefix = String.format("%1$s:", NameSpace);
-    private static final String XPathFormat = "//%1$sversion[.='%2$S']";
+    private static final String XPathFormat = "//%1$sversion[.='%2$s']";
 
     public static void replaceVersionInAllFiles(List<String> files, String oldVersion, String newVersion)
             throws FileNotFoundException, DocumentException {
         if (files == null || files.isEmpty()) return;
         for (String file : files) {
+            logger.info(String.format("checking %s ...", file));
             FileInputStream f = new FileInputStream(file);
             SAXReader reader = new SAXReader();
             Document doc = reader.read(f);
@@ -39,7 +40,7 @@ public class PomVersionManager {
         }
     }
 
-    public static void replaceVersion(Document doc, String oldVersion, String newVersion, Consumer<Document> handler)
+    public static boolean replaceVersion(Document doc, String oldVersion, String newVersion, Consumer<Document> handler)
             throws DocumentException, FileNotFoundException {
         if (doc == null) throw new NullPointerException("doc");
         if (handler == null) throw new NullPointerException("handler");
@@ -57,12 +58,13 @@ public class PomVersionManager {
         xpath.setNamespaceURIs(uris);
         List<Node> nodes = xpath.selectNodes(doc);
         if (nodes == null || nodes.isEmpty()) {
-            logger.warn("Cannot find version node");
-            return;
+            logger.warn("Cannot find version node: " + oldVersion);
+            return false;
         }
 
         nodes.forEach(n -> n.setText(newVersion));
         handler.accept(doc);
+        return true;
     }
 
     public static void writeXml(Document doc, OutputStreamWriter output) throws IOException {

@@ -12,6 +12,7 @@ import org.junit.Assert;
 import org.junit.Test;
 
 import java.io.*;
+import java.lang.reflect.InvocationTargetException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
@@ -37,7 +38,6 @@ public class AppTest {
         }};
 
         try {
-
             for (Map.Entry<String, String> e : fileMap.entrySet()) {
                 logger.info(String.format("handling %1$s...", e.getKey()));
                 InputStream xmlFile = AppTest.class.getClassLoader().getResourceAsStream(e.getKey());
@@ -46,7 +46,7 @@ public class AppTest {
                 FileInputStream f = new FileInputStream(e.getValue());
                 SAXReader reader = new SAXReader();
                 Document doc = reader.read(f);
-                PomVersionManager.replaceVersion(doc, "1000.0.0-SNAPSHOT", "450.0.0-SNAPSHOT", d -> {
+                boolean replaced = PomVersionManager.replaceVersion(doc, "1000.0.0-Java8-SNAPSHOT", "450.0.0-SNAPSHOT", d -> {
                     ByteArrayOutputStream baos = new ByteArrayOutputStream();
                     OutputStreamWriter writer = new OutputStreamWriter(baos);
                     try {
@@ -60,6 +60,7 @@ public class AppTest {
                         logger.error(e1);
                     }
                 });
+                if (!replaced) throw new IllegalStateException("Not Replaced");
             }
         } finally {
             for (Map.Entry<String, String> e : fileMap.entrySet()) {
@@ -68,10 +69,4 @@ public class AppTest {
             }
         }
     }
-
-//    @Test
-//    public void TestPomVer() throws InvocationTargetException, NoSuchMethodException, InstantiationException, IllegalAccessException {
-//        String[] args = new String[]{"pom-ver", "-n", "450.0.0-SNAPSHOT"};
-//        App.main(args);
-//    }
 }

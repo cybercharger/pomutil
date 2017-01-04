@@ -36,9 +36,8 @@ public class App {
 
     @PUOperation(option = PomVersionOption.class, operationName = "pom-ver", description = "change pom.xml version")
     public void replacePomVersion(PomVersionOption option) throws IOException, DocumentException {
-//        PomVersionManager.replaceVersionInAllFiles(option.getFiles(), option.getNewVersion());
-        System.out.println("change version to " + option.getNewVersion());
-        option.getFiles().forEach(System.out::println);
+        logger.info(String.format("Change pom version from %1$s to %2$s", option.getOldVersion(), option.getNewVersion()));
+        PomVersionManager.replaceVersionInAllFiles(option.getFiles(), option.getOldVersion(), option.getNewVersion());
     }
 
     private void operate(String[] args) throws InvocationTargetException, IllegalAccessException, InstantiationException, NoSuchMethodException {

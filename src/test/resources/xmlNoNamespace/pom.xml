@@ -4,11 +4,11 @@
     <parent>
         <artifactId>catalog-multi-build</artifactId>
         <groupId>com.ea.eadp</groupId>
-        <version>1000.0.0-SNAPSHOT</version>
+        <version>1000.0.0-Java8-SNAPSHOT</version>
     </parent>
     <groupId>com.ea.eadp</groupId>
     <artifactId>catalog.common</artifactId>
-    <version>1000.0.0-SNAPSHOT</version>
+    <version>1000.0.0-Java8-SNAPSHOT</version>
     <version>xdfs</version>
     <packaging>jar</packaging>
     <properties>
