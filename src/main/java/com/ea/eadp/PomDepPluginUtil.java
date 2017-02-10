@@ -1,25 +1,29 @@
 package com.ea.eadp;
 
-import org.dom4j.Document;
-import org.dom4j.Node;
+import com.ea.eadp.xml.XmlHelper;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
 
+import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.xpath.XPathExpressionException;
 import java.util.List;
 
 /**
  * Created by ChrisKang on 2/4/2017.
  */
 public class PomDepPluginUtil extends PomXmlUtilBase {
-    private static final String DEP_XPATH = "/%1$sproject/%1$sdependencies/%1$sdependency";
-    private static final String PLUGIN_XPATH = "/%1$sproject/%1$sbuild/%1$splugins/%1$splugin";
+    private static final String DEP_XPATH = "/project/dependencies/dependency";
+    private static final String PLUGIN_XPATH = "/project/build/plugins/plugin";
 
-    private PomDepPluginUtil() {
+    protected PomDepPluginUtil() throws ParserConfigurationException {
     }
 
-    public static List<Node> getAllDependencies(Document doc) {
-        return selectNodes(doc, ns -> String.format(DEP_XPATH, ns));
+
+    public static List<Element> getAllDependencies(Document doc) throws XPathExpressionException {
+        return XmlHelper.selectElements(doc, DEP_XPATH);
     }
 
-    public static List<Node> getAllPlugins(Document doc) {
-        return selectNodes(doc, ns -> String.format(PLUGIN_XPATH, ns));
+    public static List<Element> getAllPlugins(Document doc) throws XPathExpressionException {
+        return XmlHelper.selectElements(doc, PLUGIN_XPATH);
     }
 }

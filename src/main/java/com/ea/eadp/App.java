@@ -6,7 +6,9 @@ import com.ea.eadp.cli.PomVersionOption;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Logger;
 import org.dom4j.DocumentException;
+import org.xml.sax.SAXException;
 
+import javax.xml.parsers.ParserConfigurationException;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -35,7 +37,7 @@ public class App {
     }
 
     @PUOperation(option = PomVersionOption.class, operationName = "pom-ver", description = "change pom.xml version")
-    public void replacePomVersion(PomVersionOption option) throws IOException, DocumentException {
+    public void replacePomVersion(PomVersionOption option) throws IOException, DocumentException, ParserConfigurationException, SAXException {
         logger.info(String.format("Change pom version from %1$s to %2$s", option.getOldVersion(), option.getNewVersion()));
         PomVersionUtil.replaceVersionInAllFiles(option.getFiles(), option.getOldVersion(), option.getNewVersion());
     }

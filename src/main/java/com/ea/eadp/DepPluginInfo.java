@@ -1,8 +1,9 @@
 package com.ea.eadp;
 
 import org.apache.commons.lang3.StringUtils;
-import org.dom4j.Node;
-import org.dom4j.tree.DefaultElement;
+import org.w3c.dom.Element;
+import org.w3c.dom.NodeList;
+
 
 public abstract class DepPluginInfo {
     public static final String SEPARATOR = ":";
@@ -21,10 +22,15 @@ public abstract class DepPluginInfo {
         this.version = version;
     }
 
-    protected static String getSubElementValue(Node node, String s) {
-        DefaultElement e = (DefaultElement) node;
-        if (e == null) return "";
-        return e.element(s) == null ? "" : e.element(s).getStringValue();
+    protected static String getSubElementValue(Element element, String name) {
+        if (element == null) throw new NullPointerException("element");
+        if (StringUtils.isBlank(name)) throw new NullPointerException("name");
+        NodeList nl = element.getElementsByTagName(name);
+        if (nl == null || nl.getLength() == 0) return "";
+        if (nl.getLength() != 1) {
+            throw new IllegalStateException("more than one node found");
+        }
+        return nl.item(0).getTextContent();
     }
 
     public String getArtifactId() {

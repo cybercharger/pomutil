@@ -1,17 +1,22 @@
 package com.ea.eadp;
 
 
+import com.ea.eadp.xml.XmlHelper;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.io.output.ByteArrayOutputStream;
 import org.apache.log4j.Logger;
-import org.dom4j.Document;
 import org.dom4j.DocumentException;
-import org.dom4j.Node;
-import org.dom4j.io.SAXReader;
 import org.junit.Assert;
 import org.junit.Test;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+import org.xml.sax.SAXException;
 
+import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.transform.TransformerException;
+import javax.xml.xpath.XPathExpressionException;
 import java.io.*;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
@@ -20,14 +25,13 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-/**
- * Unit test for simple App.
- */
+
 public class AppTest {
     private static Logger logger = Logger.getLogger(AppTest.class);
 
+
     @Test
-    public void test() throws DocumentException, IOException {
+    public void test() throws IOException {
         Map<String, String> fileMap = new HashMap<String, String>() {{
             put("xmlNamespace/pom.xml", "pomWithNS.xml");
             put("xmlNoNamespace/pom.xml", "pomWithoutNS.xml");
@@ -44,9 +48,7 @@ public class AppTest {
                 InputStream xmlFile = AppTest.class.getClassLoader().getResourceAsStream(e.getKey());
                 byte[] content = IOUtils.toByteArray(xmlFile);
                 Files.write(Paths.get(".", e.getValue()), content, StandardOpenOption.CREATE);
-                FileInputStream f = new FileInputStream(e.getValue());
-                SAXReader reader = new SAXReader();
-                Document doc = reader.read(f);
+                Document doc = XmlHelper.loadXml(e.getValue());
                 boolean replaced = PomVersionUtil.replaceVersion(doc, "1000.0.0-Java8-SNAPSHOT", "450.0.0-SNAPSHOT", d -> {
                     ByteArrayOutputStream baos = new ByteArrayOutputStream();
                     OutputStreamWriter writer = new OutputStreamWriter(baos);
@@ -57,12 +59,14 @@ public class AppTest {
                         byte[] expBytes = IOUtils.toByteArray(exp);
                         String expected = new String(expBytes, "UTF-8");
                         Assert.assertEquals(expected, newXml);
-                    } catch (IOException e1) {
+                    } catch (IOException | TransformerException | DocumentException e1) {
                         logger.error(e1);
                     }
                 });
                 if (!replaced) throw new IllegalStateException("Not Replaced");
             }
+        } catch (ParserConfigurationException | XPathExpressionException | SAXException e) {
+            e.printStackTrace();
         } finally {
             for (Map.Entry<String, String> e : fileMap.entrySet()) {
                 Files.deleteIfExists(Paths.get(".", e.getValue()));
@@ -72,7 +76,7 @@ public class AppTest {
     }
 
     @Test
-    public void testDepPlugin() throws DocumentException {
+    public void testDepPlugin() throws IOException, SAXException, ParserConfigurationException, XPathExpressionException {
         final String[] expectedDeps = new String[]{
                 "junit:junit:4.12:test",
                 "dom4j:dom4j:1.6.1:",
@@ -86,26 +90,26 @@ public class AppTest {
                 "maven-compiler-plugin:org.apache.maven.plugins:3.1",
                 "maven-assembly-plugin:org.apache.maven.plugins:2.3"
         };
-        SAXReader reader = new SAXReader();
-        Document doc = reader.read(new StringReader(pomString));
-        List<Node> deps = PomDepPluginUtil.getAllDependencies(doc);
+        InputStream is = new ByteArrayInputStream(pomString.getBytes(StandardCharsets.UTF_8));
+        Document doc = XmlHelper.loadXml(is);
+        List<Element> deps = PomDepPluginUtil.getAllDependencies(doc);
         String[] actualDeps = deps.stream()
-                .map(n -> DependencyInfo.fromXml(n).toString())
+                .map(e -> DependencyInfo.fromXml(e).toString())
                 .collect(Collectors.toList())
                 .toArray(new String[deps.size()]);
 
         Assert.assertArrayEquals(expectedDeps, actualDeps);
 
-        List<Node> plugins = PomDepPluginUtil.getAllPlugins(doc);
+        List<Element> plugins = PomDepPluginUtil.getAllPlugins(doc);
         String[] actualPlugins = plugins.stream()
-                .map(n -> PluginInfo.fromXml(n).toString())
+                .map(e -> PluginInfo.fromXml(e).toString())
                 .collect(Collectors.toList())
                 .toArray(new String[plugins.size()]);
 
         Assert.assertArrayEquals(expectedPlugins, actualPlugins);
     }
 
-    private static final String pomString = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" +
+    public static final String pomString = "" +
             "<project xmlns=\"http://maven.apache.org/POM/4.0.0\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\"\n" +
             "         xsi:schemaLocation=\"http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd\">\n" +
             "    <modelVersion>4.0.0</modelVersion>\n" +

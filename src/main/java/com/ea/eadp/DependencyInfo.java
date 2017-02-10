@@ -1,6 +1,7 @@
 package com.ea.eadp;
 
-import org.dom4j.Node;
+
+import org.w3c.dom.Element;
 
 public class DependencyInfo extends DepPluginInfo {
     private static final String SCOPE = "scope";
@@ -11,12 +12,12 @@ public class DependencyInfo extends DepPluginInfo {
         this.scope = scope;
     }
 
-    public static DependencyInfo fromXml(Node node) {
-        if (node == null) throw new NullPointerException("node");
-        return new DependencyInfo(getSubElementValue(node, GROUP_ID),
-                getSubElementValue(node, ARTIFACT_ID),
-                getSubElementValue(node, VERSION),
-                getSubElementValue(node, SCOPE));
+    public static DependencyInfo fromXml(Element element) {
+        if (element == null) throw new NullPointerException("element");
+        return new DependencyInfo(getSubElementValue(element, GROUP_ID),
+                getSubElementValue(element, ARTIFACT_ID),
+                getSubElementValue(element, VERSION),
+                getSubElementValue(element, SCOPE));
     }
 
     public String getScope() {
